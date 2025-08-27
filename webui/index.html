@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>四人视频通话</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        danger: '#EF4444',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .video-container {
+                @apply relative rounded-lg overflow-hidden bg-dark shadow-lg;
+            }
+            .video-overlay {
+                @apply absolute bottom-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-sm;
+            }
+            .control-btn {
+                @apply w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg transition-all duration-300 hover:scale-110 active:scale-95;
+            }
+            .status-indicator {
+                @apply inline-block w-2 h-2 rounded-full mr-1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-6 max-w-6xl">
+        <!-- 头部信息 -->
+        <header class="text-center mb-6">
+            <h1 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-2">四人视频通话</h1>
+            <p class="text-gray-600" id="roomInfo">
+                <span class="status-indicator bg-danger" id="wsStatus"></span>
+                等待WebSocket连接...
+            </p>
+        </header>
+
+        <!-- 视频区域 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <!-- 本地视频 -->
+            <div class="video-container aspect-video">
+                <video id="localVideo" class="w-full h-full object-cover" autoplay muted playsinline></video>
+                <div class="video-overlay">本地视频</div>
+            </div>
+            
+            <!-- 远程视频1 -->
+            <div class="video-container aspect-video">
+                <video id="remoteVideo1" class="w-full h-full object-cover" autoplay playsinline></video>
+                <div class="video-overlay">用户1</div>
+            </div>
+            
+            <!-- 远程视频2 -->
+            <div class="video-container aspect-video">
+                <video id="remoteVideo2" class="w-full h-full object-cover" autoplay playsinline></video>
+                <div class="video-overlay">用户2</div>
+            </div>
+            
+            <!-- 远程视频3 -->
+            <div class="video-container aspect-video">
+                <video id="remoteVideo3" class="w-full h-full object-cover" autoplay playsinline></video>
+                <div class="video-overlay">用户3</div>
+            </div>
+        </div>
+
+        <!-- 房间控制 -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-8">
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-center">
+                <div class="w-full md:w-auto flex-1">
+                    <label for="roomId" class="block text-sm font-medium text-gray-700 mb-1">房间ID</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="roomId" placeholder="输入房间ID（留空创建新房间）" 
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <button id="createRoom" class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg transition-all" disabled>
+                        <i class="fa fa-plus-circle mr-1"></i> 创建房间
+                    </button>
+                    <button id="joinRoom" class="bg-secondary hover:bg-secondary/90 text-white px-6 py-2 rounded-lg transition-all" disabled>
+                        <i class="fa fa-sign-in mr-1"></i> 加入房间
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 通话控制 -->
+        <div class="flex justify-center gap-6 mb-8">
+            <button id="muteBtn" class="control-btn bg-dark hover:bg-gray-700" disabled>
+                <i class="fa fa-microphone text-xl"></i>
+            </button>
+            <button id="videoBtn" class="control-btn bg-dark hover:bg-gray-700" disabled>
+                <i class="fa fa-video-camera text-xl"></i>
+            </button>
+            <button id="shareBtn" class="control-btn bg-secondary hover:bg-secondary/90" disabled>
+                <i class="fa fa-desktop text-xl"></i>
+            </button>
+            <button id="leaveBtn" class="control-btn bg-danger hover:bg-danger/90" disabled>
+                <i class="fa fa-phone-rotate-left text-xl fa-flip-horizontal"></i>
+            </button>
+        </div>
+
+        <!-- 消息提示区 -->
+        <div id="messages" class="bg-white rounded-xl shadow-md p-4 h-32 overflow-y-auto text-sm text-gray-700">
+            <p class="text-gray-500 italic">系统消息将显示在这里...</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideos = [
+            document.getElementById('remoteVideo1'),
+            document.getElementById('remoteVideo2'),
+            document.getElementById('remoteVideo3')
+        ];
+        const roomIdInput = document.getElementById('roomId');
+        const createRoomBtn = document.getElementById('createRoom');
+        const joinRoomBtn = document.getElementById('joinRoom');
+        const muteBtn = document.getElementById('muteBtn');
+        const videoBtn = document.getElementById('videoBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const leaveBtn = document.getElementById('leaveBtn');
+        const roomInfo = document.getElementById('roomInfo');
+        const messages = document.getElementById('messages');
+        const wsStatus = document.getElementById('wsStatus');
+
+        // 全局变量
+        let localStream;
+        let peerConnections = new Map(); // 存储与其他用户的连接
+        let ws;
+        let roomId = '';
+        let userId = 'user_' + Math.random().toString(36).substring(2, 10); // 生成随机用户ID
+        let isMuted = false;
+        let isVideoOff = false;
+        let screenStream = null;
+        let isJoining = false; // 标记是否正在加入房间
+        let isCreatingRoom = false; // 标记是否正在创建房间
+
+        // 配置STUN服务器（增强NAT穿透能力）
+        const configuration = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' },
+                { urls: 'stun:stun3.l.google.com:19302' },
+                { urls: 'stun:stun4.l.google.com:19302' }
+            ]
+        };
+
+        // 更新WebSocket状态指示器
+        function updateWsStatus(isConnected) {
+            wsStatus.className = isConnected ? 'status-indicator bg-secondary' : 'status-indicator bg-danger';
+            // 启用/禁用按钮
+            const buttons = [createRoomBtn, joinRoomBtn, muteBtn, videoBtn, shareBtn, leaveBtn];
+            buttons.forEach(btn => {
+                btn.disabled = !isConnected;
+                btn.classList.toggle('opacity-50', !isConnected);
+                btn.classList.toggle('cursor-not-allowed', !isConnected);
+            });
+        }
+
+        // 显示消息
+        function showMessage(text, isError = false) {
+            const p = document.createElement('p');
+            p.className = isError ? 'text-danger' : '';
+            p.innerHTML = `<strong>[${new Date().toLocaleTimeString()}]</strong> ${text}`;
+            messages.appendChild(p);
+            messages.scrollTop = messages.scrollHeight;
+            console.log(text); // 同时输出到控制台便于调试
+        }
+
+        // 初始化本地媒体流
+        async function initLocalStream() {
+            try {
+                // 如果已经有流，直接返回
+                if (localStream) return true;
+                
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 1280, height: 720 }, 
+                    audio: true 
+                });
+                localVideo.srcObject = localStream;
+                showMessage('已获取摄像头和麦克风权限');
+                return true;
+            } catch (error) {
+                showMessage(`获取媒体设备失败: ${error.message}`, true);
+                console.error('媒体设备错误:', error);
+                return false;
+            }
+        }
+
+        // 创建WebSocket连接
+        function connectWebSocket() {
+            // 确保只创建一个连接
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                return;
+            }
+            
+            // 重置状态
+            updateWsStatus(false);
+            roomInfo.innerHTML = '<span class="status-indicator bg-danger" id="wsStatus"></span> 正在连接WebSocket...';
+            
+            // 使用wss协议连接WebSocket
+            const wsUrl = `wss://yangzhenkun.top/ws?user_id=${userId}&token=valid-token`;
+            showMessage(`正在连接WebSocket: ${wsUrl}`);
+            
+            // 关闭可能存在的旧连接
+            if (ws) {
+                ws.close();
+            }
+            
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                updateWsStatus(true);
+                roomInfo.innerHTML = '<span class="status-indicator bg-secondary" id="wsStatus"></span> WebSocket已连接';
+                showMessage('WebSocket连接成功');
+                
+                // 如果有等待处理的操作
+                if (isCreatingRoom && !roomId) {
+                    sendMessage({ type: 'create_room' });
+                } else if (isJoining && roomId) {
+                    sendMessage({ type: 'join', room_id: roomId });
+                }
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    handleSignalingMessage(message);
+                } catch (error) {
+                    showMessage(`解析消息失败: ${error.message}`, true);
+                    console.error('消息解析错误:', error, event.data);
+                }
+            };
+
+            ws.onerror = (error) => {
+                updateWsStatus(false);
+                showMessage(`WebSocket错误: ${error}`, true);
+                console.error('WebSocket错误:', error);
+            };
+
+            ws.onclose = (event) => {
+                updateWsStatus(false);
+                showMessage(`WebSocket连接已关闭 (代码: ${event.code})，${event.reason || '无原因'}`);
+                
+                // 重置状态
+                isCreatingRoom = false;
+                isJoining = false;
+                roomInfo.innerHTML = '<span class="status-indicator bg-danger" id="wsStatus"></span> WebSocket已断开';
+                
+                // 尝试重连
+                setTimeout(() => {
+                    showMessage('尝试重新连接WebSocket...');
+                    connectWebSocket();
+                }, 3000);
+            };
+        }
+
+        // 发送消息
+        function sendMessage(data) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                try {
+                    const messageStr = JSON.stringify(data);
+                    ws.send(messageStr);
+                    console.log('发送消息:', data);
+                } catch (error) {
+                    showMessage(`发送消息失败: ${error.message}`, true);
+                }
+            } else {
+                showMessage('WebSocket未连接，无法发送消息', true);
+                // 尝试重连并标记需要重发的操作
+                if (data.type === 'create_room') {
+                    isCreatingRoom = true;
+                } else if (data.type === 'join') {
+                    isJoining = true;
+                    roomId = data.room_id;
+                }
+                connectWebSocket();
+            }
+        }
+
+        // 处理信令消息
+        async function handleSignalingMessage(message) {
+            console.log('收到消息:', message);
+            
+            switch (message.type) {
+                case 'room_created':
+                    isCreatingRoom = false;
+                    roomId = message.room_id;
+                    roomIdInput.value = roomId;
+                    roomInfo.innerHTML = `<span class="status-indicator bg-secondary" id="wsStatus"></span> 当前房间: ${roomId} (您创建的房间)`;
+                    showMessage(`房间创建成功，ID: ${roomId}`);
+                    break;
+
+                case 'room_joined':
+                    // 成功加入房间
+                    isJoining = false;
+                    roomId = message.room_id;
+                    roomInfo.innerHTML = `<span class="status-indicator bg-secondary" id="wsStatus"></span> 当前房间: ${roomId}`;
+                    showMessage(`成功加入房间: ${roomId}`);
+                    // 如果有其他用户，建立连接
+                    if (message.existing_users && message.existing_users.length > 0) {
+                        showMessage(`房间内已有用户: ${message.existing_users.join(', ')}`);
+                        for (const userId of message.existing_users) {
+                            await createPeerConnection(userId, true);
+                        }
+                    }
+                    break;
+
+                case 'user_joined':
+                    showMessage(`用户 ${message.from} 加入房间`);
+                    // 向新加入的用户发送offer
+                    await createPeerConnection(message.from, true);
+                    break;
+
+                case 'offer':
+                    await createPeerConnection(message.from, false);
+                    await peerConnections.get(message.from).setRemoteDescription(new RTCSessionDescription(message.data));
+                    await createAnswer(message.from);
+                    break;
+
+                case 'answer':
+                    const pc = peerConnections.get(message.from);
+                    if (pc) {
+                        await pc.setRemoteDescription(new RTCSessionDescription(message.data));
+                    } else {
+                        showMessage(`未找到与 ${message.from} 的连接`, true);
+                    }
+                    break;
+
+                case 'candidate':
+                    const peer = peerConnections.get(message.from);
+                    if (peer) {
+                        try {
+                            await peer.addIceCandidate(new RTCIceCandidate(message.data));
+                        } catch (error) {
+                            showMessage(`添加ICE候选者失败: ${error.message}`, true);
+                        }
+                    } else {
+                        showMessage(`未找到与 ${message.from} 的连接，无法添加ICE候选者`, true);
+                    }
+                    break;
+
+                case 'user_left':
+                    showMessage(`用户 ${message.from} 离开房间`);
+                    closePeerConnection(message.from);
+                    updateRemoteVideos();
+                    break;
+
+                case 'room_info':
+                    showMessage(`房间内其他用户: ${message.data.join(', ')}`);
+                    break;
+
+                case 'error':
+                    // 处理错误，重置状态
+                    isCreatingRoom = false;
+                    isJoining = false;
+                    showMessage(`错误: ${message.data.message}`, true);
+                    if (message.data.code === 'room_not_found') {
+                        roomInfo.innerHTML = `<span class="status-indicator bg-secondary" id="wsStatus"></span> 房间不存在，请检查ID`;
+                    } else {
+                        roomInfo.innerHTML = `<span class="status-indicator bg-secondary" id="wsStatus"></span> 操作失败: ${message.data.message}`;
+                    }
+                    break;
+
+                default:
+                    showMessage(`收到未知类型的消息: ${message.type}`, true);
+            }
+        }
+
+        // 创建PeerConnection
+        async function createPeerConnection(remoteUserId, shouldOffer) {
+            if (peerConnections.has(remoteUserId)) {
+                showMessage(`与 ${remoteUserId} 的连接已存在`);
+                return;
+            }
+
+            showMessage(`正在与 ${remoteUserId} 建立连接...`);
+            const pc = new RTCPeerConnection(configuration);
+            peerConnections.set(remoteUserId, pc);
+
+            // 添加本地流轨道
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    pc.addTrack(track, localStream);
+                });
+            } else {
+                showMessage('本地流未准备好，无法添加轨道', true);
+            }
+
+            // 监听ICE候选者
+            pc.onicecandidate = (event) => {
+                if (event.candidate) {
+                    sendMessage({
+                        type: 'candidate',
+                        to: remoteUserId,
+                        data: event.candidate
+                    });
+                }
+            };
+
+            // 监听ICE连接状态变化
+            pc.oniceconnectionstatechange = () => {
+                showMessage(`与 ${remoteUserId} 的ICE连接状态: ${pc.iceConnectionState}`);
+                if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'disconnected') {
+                    showMessage(`与 ${remoteUserId} 的连接失败，尝试重新连接...`);
+                    closePeerConnection(remoteUserId);
+                    createPeerConnection(remoteUserId, true);
+                }
+            };
+
+            // 监听远程流
+            pc.ontrack = (event) => {
+                const stream = event.streams[0];
+                assignRemoteStream(remoteUserId, stream);
+            };
+
+            // 监听连接状态变化
+            pc.onconnectionstatechange = () => {
+                console.log(`与 ${remoteUserId} 的连接状态: ${pc.connectionState}`);
+                if (pc.connectionState === 'failed') {
+                    showMessage(`与 ${remoteUserId} 的连接失败，尝试重新连接...`);
+                    closePeerConnection(remoteUserId);
+                    createPeerConnection(remoteUserId, true);
+                } else if (pc.connectionState === 'closed') {
+                    showMessage(`与 ${remoteUserId} 的连接已关闭`);
+                    closePeerConnection(remoteUserId);
+                    updateRemoteVideos();
+                }
+            };
+
+            // 如果需要，创建offer
+            if (shouldOffer) {
+                await createOffer(remoteUserId);
+            }
+        }
+
+        // 创建Offer
+        async function createOffer(remoteUserId) {
+            const pc = peerConnections.get(remoteUserId);
+            if (!pc) return;
+
+            try {
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                sendMessage({
+                    type: 'offer',
+                    to: remoteUserId,
+                    data: offer
+                });
+                showMessage(`已向 ${remoteUserId} 发送offer`);
+            } catch (error) {
+                showMessage(`创建offer失败: ${error.message}`, true);
+                console.error('创建offer错误:', error);
+            }
+        }
+
+        // 创建Answer
+        async function createAnswer(remoteUserId) {
+            const pc = peerConnections.get(remoteUserId);
+            if (!pc) return;
+
+            try {
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                sendMessage({
+                    type: 'answer',
+                    to: remoteUserId,
+                    data: answer
+                });
+                showMessage(`已向 ${remoteUserId} 发送answer`);
+            } catch (error) {
+                showMessage(`创建answer失败: ${error.message}`, true);
+                console.error('创建answer错误:', error);
+            }
+        }
+
+        // 关闭PeerConnection
+        function closePeerConnection(remoteUserId) {
+            const pc = peerConnections.get(remoteUserId);
+            if (pc) {
+                pc.close();
+                peerConnections.delete(remoteUserId);
+                showMessage(`已关闭与 ${remoteUserId} 的连接`);
+            }
+        }
+
+        // 分配远程流到视频元素
+        function assignRemoteStream(userId, stream) {
+            // 找到第一个空闲的远程视频元素
+            const freeVideo = remoteVideos.find(video => !video.srcObject);
+            
+            if (freeVideo) {
+                freeVideo.srcObject = stream;
+                // 更新视频标签
+                const overlay = freeVideo.nextElementSibling;
+                if (overlay) overlay.textContent = `用户 ${userId.substring(0, 6)}...`;
+                showMessage(`已连接到用户 ${userId}`);
+            } else {
+                showMessage('房间已满，无法显示更多视频', true);
+            }
+        }
+
+        // 更新远程视频显示
+        function updateRemoteVideos() {
+            // 清空所有远程视频
+            remoteVideos.forEach(video => {
+                video.srcObject = null;
+                const overlay = video.nextElementSibling;
+                if (overlay) overlay.textContent = `等待用户加入`;
+            });
+
+            // 重新分配现有流
+            const peers = Array.from(peerConnections.keys());
+            peers.forEach((userId, index) => {
+                if (index < remoteVideos.length) {
+                    const pc = peerConnections.get(userId);
+                    if (pc && pc.getReceivers) {
+                        const receivers = pc.getReceivers();
+                        if (receivers.length > 0) {
+                            const stream = new MediaStream();
+                            receivers.forEach(receiver => {
+                                if (receiver.track) stream.addTrack(receiver.track);
+                            });
+                            remoteVideos[index].srcObject = stream;
+                            const overlay = remoteVideos[index].nextElementSibling;
+                            if (overlay) overlay.textContent = `用户 ${userId.substring(0, 6)}...`;
+                        }
+                    }
+                }
+            });
+        }
+
+        // 切换麦克风静音
+        function toggleMute() {
+            isMuted = !isMuted;
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => {
+                    track.enabled = !isMuted;
+                });
+            }
+            muteBtn.innerHTML = isMuted 
+                ? '<i class="fa fa-microphone-slash text-xl"></i>' 
+                : '<i class="fa fa-microphone text-xl"></i>';
+            muteBtn.classList.toggle('bg-danger', isMuted);
+            muteBtn.classList.toggle('bg-dark', !isMuted);
+        }
+
+        // 切换摄像头
+        function toggleVideo() {
+            isVideoOff = !isVideoOff;
+            if (localStream) {
+                localStream.getVideoTracks().forEach(track => {
+                    track.enabled = !isVideoOff;
+                });
+            }
+            videoBtn.innerHTML = isVideoOff 
+                ? '<i class="fa fa-video-camera text-xl fa-ban"></i>' 
+                : '<i class="fa fa-video-camera text-xl"></i>';
+            videoBtn.classList.toggle('bg-danger', isVideoOff);
+            videoBtn.classList.toggle('bg-dark', !isVideoOff);
+        }
+
+        // 屏幕共享
+        async function toggleScreenShare() {
+            if (screenStream) {
+                // 停止屏幕共享，切换回摄像头
+                screenStream.getTracks().forEach(track => track.stop());
+                replaceTracks(localStream);
+                screenStream = null;
+                shareBtn.innerHTML = '<i class="fa fa-desktop text-xl"></i>';
+                shareBtn.classList.remove('bg-danger');
+                shareBtn.classList.add('bg-secondary');
+                showMessage('已停止屏幕共享');
+                return;
+            }
+
+            try {
+                // 获取屏幕流
+                screenStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: { width: 1920, height: 1080 },
+                    audio: false // 可选：是否共享系统音频
+                });
+
+                // 替换轨道
+                replaceTracks(screenStream);
+                
+                // 更新UI
+                shareBtn.innerHTML = '<i class="fa fa-stop text-xl"></i>';
+                shareBtn.classList.remove('bg-secondary');
+                shareBtn.classList.add('bg-danger');
+                showMessage('已开始屏幕共享');
+
+                // 监听屏幕共享结束
+                screenStream.getVideoTracks()[0].onended = () => {
+                    toggleScreenShare(); // 自动切换回摄像头
+                };
+            } catch (error) {
+                showMessage(`屏幕共享失败: ${error.message}`, true);
+                console.error('屏幕共享错误:', error);
+            }
+        }
+
+        // 替换所有连接中的视频轨道
+        function replaceTracks(newStream) {
+            const videoTrack = newStream.getVideoTracks()[0];
+            if (!videoTrack) return;
+
+            peerConnections.forEach(pc => {
+                const senders = pc.getSenders();
+                senders.forEach(sender => {
+                    if (sender.track && sender.track.kind === 'video') {
+                        sender.replaceTrack(videoTrack);
+                    }
+                });
+            });
+
+            // 更新本地视频显示
+            localVideo.srcObject = newStream;
+        }
+
+        // 离开房间
+        function leaveRoom() {
+            if (roomId) {
+                sendMessage({ type: 'leave', room_id: roomId });
+                roomInfo.innerHTML = '<span class="status-indicator bg-secondary" id="wsStatus"></span> 已离开房间';
+                showMessage('已离开房间');
+                roomId = '';
+                roomIdInput.value = '';
+            }
+
+            // 重置状态
+            isCreatingRoom = false;
+            isJoining = false;
+
+            // 关闭所有连接
+            peerConnections.forEach((pc, userId) => {
+                closePeerConnection(userId);
+            });
+            peerConnections.clear();
+            updateRemoteVideos();
+        }
+
+        // 创建房间
+        async function createRoom() {
+            // 防止重复点击
+            if (isCreatingRoom) return;
+            
+            // 先确保离开当前房间
+            if (roomId) {
+                leaveRoom();
+            }
+
+            // 初始化媒体流
+            const hasStream = await initLocalStream();
+            if (!hasStream) return;
+
+            // 标记状态
+            isCreatingRoom = true;
+            roomInfo.innerHTML = `<span class="status-indicator bg-secondary" id="wsStatus"></span> 正在创建房间...`;
+            showMessage('正在创建房间...');
+
+            // 发送创建房间请求
+            sendMessage({ type: 'create_room' });
+        }
+
+        // 加入房间
+        async function joinRoom() {
+            // 防止重复点击
+            if (isJoining) return;
+            
+            const inputRoomId = roomIdInput.value.trim();
+            if (!inputRoomId) {
+                showMessage('请输入房间ID', true);
+                return;
+            }
+
+            // 先确保离开当前房间
+            if (roomId) {
+                leaveRoom();
+            }
+
+            // 初始化媒体流
+            const hasStream = await initLocalStream();
+            if (!hasStream) return;
+
+            // 标记状态
+            roomId = inputRoomId;
+            isJoining = true;
+            roomInfo.innerHTML = `<span class="status-indicator bg-secondary" id="wsStatus"></span> 正在加入房间: ${roomId}`;
+            showMessage(`尝试加入房间: ${roomId}`);
+
+            // 发送加入房间请求
+            sendMessage({ type: 'join', room_id: roomId });
+        }
+
+        // 事件监听（确保正确绑定）
+        createRoomBtn.addEventListener('click', createRoom);
+        joinRoomBtn.addEventListener('click', joinRoom);
+        muteBtn.addEventListener('click', toggleMute);
+        videoBtn.addEventListener('click', toggleVideo);
+        shareBtn.addEventListener('click', toggleScreenShare);
+        leaveBtn.addEventListener('click', leaveRoom);
+
+        // 防止重复绑定
+        createRoomBtn.removeEventListener('click', joinRoom);
+        joinRoomBtn.removeEventListener('click', createRoom);
+
+        // 页面关闭时清理资源
+        window.addEventListener('beforeunload', () => {
+            leaveRoom();
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            if (screenStream) {
+                screenStream.getTracks().forEach(track => track.stop());
+            }
+            if (ws) {
+                ws.close();
+            }
+        });
+
+        // 初始化页面信息
+        showMessage('欢迎使用四人视频通话系统');
+        showMessage('请先等待WebSocket连接成功，再创建或加入房间');
+        
+        // 页面加载完成后尝试连接WebSocket
+        window.addEventListener('load', () => {
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>

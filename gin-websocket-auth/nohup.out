@@ -1,0 +1,151 @@
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /health                   --> main.main.func1 (4 handlers)
+[GIN-debug] GET    /                         --> main.main.func2 (4 handlers)
+[GIN-debug] GET    /ws                       --> main.main.HandleWebSocket.func4 (5 handlers)
+2025/08/27 20:44:17 服务器启动，监听端口: :8080
+2025/08/27 20:44:17 房间最大容量: 4人
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 0.0.0.0:8080
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /health                   --> main.main.func1 (4 handlers)
+[GIN-debug] GET    /                         --> main.main.func2 (4 handlers)
+[GIN-debug] GET    /ws                       --> main.main.HandleWebSocket.func4 (5 handlers)
+2025/08/27 20:45:21 服务器启动，监听端口: :8080
+2025/08/27 20:45:21 房间最大容量: 4人
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 0.0.0.0:8080
+[GIN-debug] [ERROR] listen tcp 0.0.0.0:8080: bind: address already in use
+2025/08/27 20:45:21 服务器启动失败: listen tcp 0.0.0.0:8080: bind: address already in use
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /health                   --> main.main.func1 (4 handlers)
+[GIN-debug] GET    /                         --> main.main.func2 (4 handlers)
+[GIN-debug] GET    /ws                       --> main.main.HandleWebSocket.func4 (5 handlers)
+2025/08/27 20:48:32 服务器启动，监听端口: :8080
+2025/08/27 20:48:32 房间最大容量: 4人
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 0.0.0.0:8080
+[GIN] 2025/08/27 - 21:06:31 | 200 |      71.314µs |   59.83.208.108 | GET      "/"
+[GIN] 2025/08/27 - 21:06:33 | 200 |      33.974µs |  180.101.244.12 | GET      "/"
+[GIN] 2025/08/27 - 21:06:50 | 200 |      39.294µs |  220.196.160.53 | GET      "/"
+[GIN] 2025/08/27 - 21:19:17 | 200 |      36.549µs |  204.76.203.212 | GET      "/"
+[GIN-debug] [WARNING] Creating an Engine instance with the Logger and Recovery middleware already attached.
+
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /health                   --> main.main.func1 (4 handlers)
+[GIN-debug] GET    /                         --> main.main.func2 (4 handlers)
+[GIN-debug] GET    /ws                       --> main.main.HandleWebSocket.func4 (5 handlers)
+2025/08/27 21:35:24 服务器启动，监听端口: :8080
+2025/08/27 21:35:24 房间最大容量: 4人
+[GIN-debug] [WARNING] You trusted all proxies, this is NOT safe. We recommend you to set a value.
+Please check https://pkg.go.dev/github.com/gin-gonic/gin#readme-don-t-trust-all-proxies for details.
+[GIN-debug] Listening and serving HTTP on 0.0.0.0:8080
+[GIN] 2025/08/27 - 21:44:38 | 200 |       79.58µs |  204.76.203.212 | GET      "/"
+2025/08/27 21:51:09 创建房间: 98lvuh
+2025/08/27 21:51:09 用户 user_bv1abryd 加入房间 98lvuh，当前成员: []
+[GIN] 2025/08/27 - 21:51:09 | 200 |     208.953µs |    117.9.93.117 | GET      "/ws?user_id=user_bv1abryd&token=valid-token"
+2025/08/27 21:51:24 创建房间: 77dl41
+2025/08/27 21:51:24 用户 user_kaixbtnw 加入房间 77dl41，当前成员: []
+[GIN] 2025/08/27 - 21:51:24 | 200 |     232.748µs |   60.27.159.110 | GET      "/ws?user_id=user_kaixbtnw&token=valid-token"
+2025/08/27 21:51:53 用户 user_kaixbtnw 离开房间 77dl41
+2025/08/27 21:51:56 创建房间: w6a1fe
+2025/08/27 21:51:56 用户 user_kaixbtnw 加入房间 w6a1fe，当前成员: []
+[GIN] 2025/08/27 - 21:51:56 | 200 |     152.818µs |    117.9.93.117 | GET      "/ws?user_id=user_kaixbtnw&token=valid-token"
+2025/08/27 21:52:50 用户 user_kaixbtnw 离开房间 w6a1fe
+2025/08/27 21:53:06 连接错误: websocket: close 1005 (no status)
+2025/08/27 21:53:06 用户 user_bv1abryd 离开房间 98lvuh
+2025/08/27 21:53:10 创建房间: ezqlrg
+2025/08/27 21:53:10 用户 user_rxwrbw68 加入房间 ezqlrg，当前成员: []
+[GIN] 2025/08/27 - 21:53:10 | 200 |     167.495µs |    117.9.93.117 | GET      "/ws?user_id=user_rxwrbw68&token=valid-token"
+2025/08/27 21:53:18 连接错误: websocket: close 1005 (no status)
+2025/08/27 21:53:18 用户 user_rxwrbw68 离开房间 ezqlrg
+2025/08/27 21:53:21 创建房间: mjm366
+2025/08/27 21:53:21 用户 user_1nnxqvo1 加入房间 mjm366，当前成员: []
+[GIN] 2025/08/27 - 21:53:21 | 200 |     157.566µs |    117.9.93.117 | GET      "/ws?user_id=user_1nnxqvo1&token=valid-token"
+2025/08/27 21:53:37 创建房间: ik3vof
+2025/08/27 21:53:37 用户 user_zgm2mhrv 加入房间 ik3vof，当前成员: []
+[GIN] 2025/08/27 - 21:53:37 | 200 |      153.96µs |    117.9.93.117 | GET      "/ws?user_id=user_zgm2mhrv&token=valid-token"
+2025/08/27 21:54:24 连接错误: websocket: close 1005 (no status)
+2025/08/27 21:54:24 用户 user_zgm2mhrv 离开房间 ik3vof
+2025/08/27 21:54:34 创建房间: 6zfavz
+2025/08/27 21:54:34 用户 user_bzuco1r5 加入房间 6zfavz，当前成员: []
+[GIN] 2025/08/27 - 21:54:34 | 200 |     159.681µs |    117.9.93.117 | GET      "/ws?user_id=user_bzuco1r5&token=valid-token"
+2025/08/27 21:55:22 创建房间: 84mlf9
+2025/08/27 21:55:22 用户 user_hqjwy4xy 加入房间 84mlf9，当前成员: []
+[GIN] 2025/08/27 - 21:55:22 | 200 |     150.744µs |    117.9.93.117 | GET      "/ws?user_id=user_hqjwy4xy&token=valid-token"
+2025/08/27 21:58:27 用户 user_hqjwy4xy 离开房间 84mlf9
+2025/08/27 21:58:31 用户 user_bzuco1r5 离开房间 6zfavz
+2025/08/27 22:03:17 创建房间: 47uvbk
+2025/08/27 22:03:17 用户 user_ayz1o4rn 加入房间 47uvbk，当前成员: []
+[GIN] 2025/08/27 - 22:03:17 | 200 |     221.646µs |    117.9.93.117 | GET      "/ws?user_id=user_ayz1o4rn&token=valid-token"
+2025/08/27 22:03:20 用户 user_ayz1o4rn 离开房间 47uvbk
+2025/08/27 22:03:21 创建房间: 9ramvy
+2025/08/27 22:03:21 用户 user_q2ver3hu 加入房间 9ramvy，当前成员: []
+[GIN] 2025/08/27 - 22:03:21 | 200 |      228.43µs |    117.9.93.117 | GET      "/ws?user_id=user_q2ver3hu&token=valid-token"
+2025/08/27 22:03:53 用户 user_q2ver3hu 离开房间 9ramvy
+2025/08/27 22:03:53 创建房间: z3vhk4
+2025/08/27 22:03:53 用户 user_6gy0k8tc 加入房间 z3vhk4，当前成员: []
+[GIN] 2025/08/27 - 22:03:53 | 200 |     151.355µs |    117.9.93.117 | GET      "/ws?user_id=user_6gy0k8tc&token=valid-token"
+[GIN] 2025/08/27 - 22:05:06 | 200 |      44.934µs |    18.97.19.137 | GET      "/"
+2025/08/27 22:08:53 用户 user_6gy0k8tc 离开房间 z3vhk4
+2025/08/27 22:08:53 用户 user_1nnxqvo1 离开房间 mjm366
+2025/08/27 22:08:56 创建房间: sg7hff
+2025/08/27 22:08:56 用户 user_6gy0k8tc 加入房间 sg7hff，当前成员: []
+[GIN] 2025/08/27 - 22:08:56 | 200 |     155.032µs |    117.9.93.117 | GET      "/ws?user_id=user_6gy0k8tc&token=valid-token"
+2025/08/27 22:08:56 创建房间: vmpzrm
+2025/08/27 22:08:56 用户 user_1nnxqvo1 加入房间 vmpzrm，当前成员: []
+[GIN] 2025/08/27 - 22:08:56 | 200 |     171.853µs |    117.9.93.117 | GET      "/ws?user_id=user_1nnxqvo1&token=valid-token"
+2025/08/27 22:08:59 连接错误: websocket: close 1005 (no status)
+2025/08/27 22:08:59 用户 user_1nnxqvo1 离开房间 vmpzrm
+2025/08/27 22:08:59 创建房间: faoarm
+2025/08/27 22:08:59 用户 user_21qn14y8 加入房间 faoarm，当前成员: []
+[GIN] 2025/08/27 - 22:08:59 | 200 |       148.9µs |    117.9.93.117 | GET      "/ws?user_id=user_21qn14y8&token=valid-token"
+2025/08/27 22:09:57 连接错误: websocket: close 1005 (no status)
+2025/08/27 22:09:57 用户 user_21qn14y8 离开房间 faoarm
+2025/08/27 22:09:57 创建房间: txdqcf
+2025/08/27 22:09:57 用户 user_5zmbh2zs 加入房间 txdqcf，当前成员: []
+[GIN] 2025/08/27 - 22:09:57 | 200 |     183.405µs |    117.9.93.117 | GET      "/ws?user_id=user_5zmbh2zs&token=valid-token"
+2025/08/27 22:12:02 连接错误: websocket: close 1005 (no status)
+2025/08/27 22:12:02 用户 user_5zmbh2zs 离开房间 txdqcf
+2025/08/27 22:12:03 创建房间: gzea28
+2025/08/27 22:12:03 用户 user_jawnt15m 加入房间 gzea28，当前成员: []
+[GIN] 2025/08/27 - 22:12:03 | 200 |     194.015µs |    117.9.93.117 | GET      "/ws?user_id=user_jawnt15m&token=valid-token"
+2025/08/27 22:12:12 用户 user_6gy0k8tc 离开房间 sg7hff
+2025/08/27 22:13:59 创建房间: 897p85
+2025/08/27 22:13:59 用户 user_dws6seyn 加入房间 897p85，当前成员: []
+[GIN] 2025/08/27 - 22:13:59 | 200 |     173.717µs |    117.9.93.117 | GET      "/ws?user_id=user_dws6seyn&token=valid-token"
+[GIN] 2025/08/27 - 22:14:24 | 200 |      40.746µs |  204.76.203.212 | GET      "/"
+2025/08/27 22:14:27 用户 user_jawnt15m 离开房间 gzea28
+2025/08/27 22:14:27 用户 user_dws6seyn 离开房间 897p85
+2025/08/27 22:14:30 创建房间: dr1wtu
+2025/08/27 22:14:30 用户 user_jawnt15m 加入房间 dr1wtu，当前成员: []
+[GIN] 2025/08/27 - 22:14:30 | 200 |     149.651µs |    117.9.93.117 | GET      "/ws?user_id=user_jawnt15m&token=valid-token"
+2025/08/27 22:14:30 创建房间: 95i84l
+2025/08/27 22:14:30 用户 user_dws6seyn 加入房间 95i84l，当前成员: []
+[GIN] 2025/08/27 - 22:14:30 | 200 |     152.417µs |    117.9.93.117 | GET      "/ws?user_id=user_dws6seyn&token=valid-token"
+2025/08/27 22:14:31 连接错误: websocket: close 1005 (no status)
+2025/08/27 22:14:31 用户 user_jawnt15m 离开房间 dr1wtu
+2025/08/27 22:14:31 创建房间: xdzqmf
+2025/08/27 22:14:31 用户 user_55fgj8a2 加入房间 xdzqmf，当前成员: []
+[GIN] 2025/08/27 - 22:14:31 | 200 |     264.528µs |    117.9.93.117 | GET      "/ws?user_id=user_55fgj8a2&token=valid-token"
+2025/08/27 22:15:38 用户 user_dws6seyn 离开房间 95i84l
